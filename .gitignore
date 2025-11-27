@@ -1,0 +1,28 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.ipynb_checkpoints/
+
+# Virtual Environments
+venv/
+env/
+.env
+.conda/
+
+# Database
+sample_db/
+*.parquet
+*.sqlite3
+
+# Logs and debug
+*.log
+
+# OS Specific
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
