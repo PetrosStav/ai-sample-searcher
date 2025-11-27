@@ -8,9 +8,14 @@ from mutagen import File as MutagenFile
 from transformers import ClapModel, ClapProcessor
 from tqdm import tqdm
 
-SAMPLE_FOLDER = "/mnt/c/Users/gdiaz/OneDrive/Documentos/Ableton/DrumKits"
+DEFAULT_FOLDER = "./my_samples" 
+SAMPLE_FOLDER = os.getenv("SAMPLE_FOLDER", DEFAULT_FOLDER)
 DB_PATH = "./sample_db"
 MAX_DURATION = 10.0
+
+if not os.path.exists(SAMPLE_FOLDER):
+    print(f"Warning: Folder {SAMPLE_FOLDER} does not exist.")
+    print("Please edit SAMPLE_FOLDER variable on the script or configure your environment")
 
 def get_audio_embedding(file_path):
     try:
