@@ -1,8 +1,10 @@
-import sys
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+import sys
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QListWidget, QMainWindow, QListWidgetItem
 from PyQt6.QtCore import Qt, QMimeData, QUrl
-from PyQt6.QtGui import QDrag
+from PyQt6.QtGui import QDrag, QShortcut, QKeySequence
+from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from searcher import SampleSearcher
 
 class SampleList(QListWidget):
@@ -46,8 +48,13 @@ class MainWindow(QMainWindow):
         self.resize(400, 600)
         self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
 
-        print("Initializing IA motor...")
+        print("Initializing AI motor...")
         self.engine = SampleSearcher()
+
+        self.audio_ouput = QAudioOutput()
+        self.player = QMediaPlayer()
+        self.player.setAudioOutput(self.audio_ouput)
+        self.audio_ouput.setVolume(0.8)
 
         layout = QVBoxLayout()
 
@@ -57,15 +64,31 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.search_bar)
 
         self.result_list = SampleList()
+        self.result_list.itemClicked.connect(self.play_preview)
         layout.addWidget(self.result_list)
+
+        self.stop_shortcut = QShortcut(QKeySequence(Qt.Key.Key_Space), self)
+        self.stop_shortcut.activated.connect(self.stop_audio)
 
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
 
+    def play_preview(self, item):
+        file_path = item.data(Qt.ItemDataRole.UserRole)
+        if file_path.startswith("/mnt/"):
+            file_path = self.result_list.wsl_to_windows_path(file_path)
+
+        self.player.setSource(QUrl.fromLocalFile(file_path))
+        self.player.play()
+
+    def stop_audio(self):
+        if self.player.playbackState() == QMediaPlayer.PlaybackState.PlayingState:
+            self.player.stop()
+
     def do_search(self):
         query = self.search_bar.text()
-        results = self.engine.search(query, top_k=10)
+        results = self.engine.search(query, top_k=15)
         self.result_list.clear()
 
         for item in results:

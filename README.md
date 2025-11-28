@@ -31,6 +31,8 @@ Powered by **LAION-CLAP**, **ChromaDB**, and **PyQt6**.
 
 ## Instalation
 
+Prerequisite: Python 3.10 is required.
+
 1. **Clone the respository**
 ```bash
    git clone [https://github.com/gdiaz82/ai-sample-searcher](https://github.com/gdiaz82/ai-sample-searcher)
@@ -41,11 +43,12 @@ Powered by **LAION-CLAP**, **ChromaDB**, and **PyQt6**.
     conda create -n audio-search python=3.10
     conda activate audio-search
 ```
-3. **Install depndencies**
+3. **Install dependencies**
 ```bash
     pip install -r requirements.txt
 ```
 *Note: If you have an NVIDIA GPU, ensure you have the correct PyTorch version with CUDA support installed.*
+*pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121*
 
 ## Usage
 
@@ -72,9 +75,9 @@ Once indexed, launch the GUI:
 
 - [x] Local Vector DB Persistence
 
-- [ ] PyQt6 GUI with Drag & Drop
+- [x] PyQt6 GUI with Drag & Drop
 
-- [ ] Built-in Audio Player (Preview before drag)
+- [x] Built-in Audio Player (Preview before drag)
 
 - [ ] File Watcher (Auto-index new files)
 
