@@ -1,11 +1,38 @@
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 import sys
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QListWidget, QMainWindow, QListWidgetItem
-from PyQt6.QtCore import Qt, QMimeData, QUrl
+from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit, 
+                             QListWidget, QMainWindow, QListWidgetItem, QPushButton, 
+                             QHBoxLayout, QFileDialog, QMessageBox, QProgressBar, QLabel)
+from PyQt6.QtCore import Qt, QMimeData, QUrl, QThread, pyqtSignal
 from PyQt6.QtGui import QDrag, QShortcut, QKeySequence
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from searcher import SampleSearcher
+from indexer import IndexerBackend
+
+class IndexingWorker(QThread):
+    finished = pyqtSignal(int)
+    progress = pyqtSignal(int) 
+    status_update = pyqtSignal(str)
+
+    def __init__(self, folder_path):
+        super().__init__()
+        self.folder_path = folder_path
+    
+    def run(self):
+        self.status_update.emit("Loading Indexer models...")
+        indexer = IndexerBackend()
+
+        def callback_bridge(percentage):
+            self.progress.emit(percentage)
+
+        self.status_update.emit(f"Starting indexing on {self.folder_path}")
+        try:
+            count = indexer.run_indexing(self.folder_path, progress_callback=callback_bridge)
+        except Exception as e:
+            self.status_update.emit(f"FATAL INDEXING ERROR: {e}")
+            count = 0
+        self.finished.emit(count)
 
 class SampleList(QListWidget):
     def __init__(self):
@@ -45,34 +72,115 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("AI Sample Searcher")
-        self.resize(400, 600)
+        self.resize(500, 700)
         self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
 
-        print("Initializing AI motor...")
-        self.engine = SampleSearcher()
+        try: 
+            self.engine = SampleSearcher()
+            print("DB Loaded succesfuly")
+            db_exists = True
+        except FileNotFoundError:
+            print("No DB found. Waiting for user to index.")
+            self.engine = None
+            db_exists = False
 
+        #Audio Setup
         self.audio_ouput = QAudioOutput()
         self.player = QMediaPlayer()
         self.player.setAudioOutput(self.audio_ouput)
         self.audio_ouput.setVolume(0.8)
 
-        layout = QVBoxLayout()
+        main_layout = QVBoxLayout()
 
+        #Indexing Boutton
+        self.top_bar = QHBoxLayout()
+        self.btn_index = QPushButton("📂 Add Samples Folder")
+        self.btn_index.clicked.connect(self.open_folder_dialog)
+        self.top_bar.addWidget(self.btn_index)
+        main_layout.addLayout(self.top_bar)
+
+        #Progress Bar
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setRange(0, 0)
+        self.progress_bar.hide()
+        main_layout.addWidget(self.progress_bar)
+
+        self.status_label = QLabel("Initializing....")
+        self.status_label.setStyleSheet("font-size: 10pt; color: #555;")
+        main_layout.addWidget(self.status_label)
+
+        #Search Bar
         self.search_bar = QLineEdit()
         self.search_bar.setPlaceholderText("Describe Sound: ")
         self.search_bar.returnPressed.connect(self.do_search)
-        layout.addWidget(self.search_bar)
 
+        if not db_exists:
+            self.search_bar.setPlaceholderText("Please index a folder first to search...")
+            self.search_bar.setEnabled(False)
+            self.status_label.setText("Ready to index. Please select a folder.")
+        else:
+            self.search_bar.setPlaceholderText("Describe Sound: ")
+            self.status_label.setText("Engine Loaded. Ready.")
+        main_layout.addWidget(self.search_bar)
+
+        #Result List
         self.result_list = SampleList()
         self.result_list.itemClicked.connect(self.play_preview)
-        layout.addWidget(self.result_list)
+        main_layout.addWidget(self.result_list)
 
         self.stop_shortcut = QShortcut(QKeySequence(Qt.Key.Key_Space), self)
         self.stop_shortcut.activated.connect(self.stop_audio)
 
         container = QWidget()
-        container.setLayout(layout)
+        container.setLayout(main_layout)
         self.setCentralWidget(container)
+
+    def update_status_label(self, message):
+        self.status_label.setText(message)
+
+    def open_folder_dialog(self):
+        folder = QFileDialog.getExistingDirectory(self, "Select Sample Folder")
+        if folder:
+            reply = QMessageBox.question(self, 'Index Folder', 
+                                         f"Do you want to index:\n{folder}\n\nThis may take a while.",
+                                         QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if reply == QMessageBox.StandardButton.Yes:
+                self.start_indexing(folder)
+
+    def start_indexing(self, folder):
+        self.btn_index.setEnabled(False)
+        self.search_bar.setEnabled(False)
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        self.progress_bar.show()
+        self.status_label.setText("Indexing started...")
+
+        self.worker = IndexingWorker(folder)
+        self.worker.finished.connect(self.indexing_finished)
+        self.worker.progress.connect(self.update_progress_bar)
+        self.worker.status_update.connect(self.update_status_label)
+        self.worker.start()
+
+    def update_progress_bar(self, val):
+        self.progress_bar.setValue(val)
+        self.status_label.setText(f"Indexing...%")
+
+    def indexing_finished(self, count):
+        self.progress_bar.hide()
+        self.btn_index.setEnabled(True)
+        self.search_bar.setEnabled(True)
+        QMessageBox.information(self, "Done", f"Indexing complete!\nProcessed {count} new files.")
+        self.status_label.setText("Reloading Eninge...")
+        try: 
+            self.engine = SampleSearcher()
+            self.search_bar.setPlaceholderText("Describe Sound: ")
+            self.search_bar.setEnabled(True)
+            self.search_bar.setFocus()
+            self.status_label.setText(f"Engine ready! Processed {count} new files.")
+            QMessageBox.information(self, "Done", f"Indexing complete!\nProcessed {count} new files.")
+        except Exception as e:
+            self.status_label.setText(f"FATAL ERROR: Could not load DB. {e}")
+            QMessageBox.critical(self, "Error", f"Could not load database: {e}")
 
     def play_preview(self, item):
         file_path = item.data(Qt.ItemDataRole.UserRole)
@@ -87,6 +195,8 @@ class MainWindow(QMainWindow):
             self.player.stop()
 
     def do_search(self):
+        if self.engine is None:
+            return
         query = self.search_bar.text()
         results = self.engine.search(query, top_k=15)
         self.result_list.clear()
