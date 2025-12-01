@@ -35,7 +35,7 @@ Prerequisite: Python 3.10 is required.
 
 1. **Clone the respository**
 ```bash
-   git clone [https://github.com/gdiaz82/ai-sample-searcher](https://github.com/gdiaz82/ai-sample-searcher)
+   git clone https://github.com/gdiaz82/ai-sample-searcher
    cd ai-sample-searcher
 ```
 2. **Create a virtual environment (Recommended)**
@@ -52,23 +52,31 @@ Prerequisite: Python 3.10 is required.
 
 ## Usage
 
-1. **Indexing your Library**
-Before searching, the AI needs to "listen" to your samples.
-- Open src/indexer.py and set your sample folder path:
+1. **Launch the Application**
 ```bash
-    SAMPLE_FOLDER = "C:/Users/You/Music/Samples"
+python src/app.py
 ```
-- Run the indexer:
-```bash
-    python src/indexer.py
-```
-2. **Launching the App**
-Once indexed, launch the GUI:
-```bash
-    python src/app.py
-```
-- Type a description (e.g. "Crunchy hip hop snare").
+2. **Index your Library**
+When you open the app for the first time, the database will be empty.
+
+- Click the "📂 Add Samples Folder" button at the top.
+
+- Select the root directory of your sample library via the file explorer window.
+
+- The AI will scan and generate embeddings for your files. This is GPU-accelerated but may take a few minutes depending on your library size.
+
+- A popup will confirm when indexing is finished.
+
+3. **Search & Drag**
+
+- Type a description in the search bar (e.g., "Crunchy hip hop snare" or "Atmospheric sci-fi texture").
+
 - Press Enter.
+
+- Click on a result to preview the sound.
+
+- Drag and Drop the result directly from the list into your DAW (Ableton, FL Studio, etc.).
+
 
 ## Roadmap
 - [x] Core Semantic Search Engine
