@@ -2,6 +2,8 @@
 
 **Find your samples by describing them, not by filename.**
 
+![Demo](docs/demo.gif)
+
 A local desktop application for music producers that allows you to search through your sample library using natural language (e.g., *"Heavy distorted industrial kick"* or *"Atmospheric sci-fi texture"*).
 
 Powered by **LAION-CLAP**, **ChromaDB**, and **PyQt6**.

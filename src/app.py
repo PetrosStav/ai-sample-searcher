@@ -5,10 +5,17 @@ from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLineEdit,
                              QListWidget, QMainWindow, QListWidgetItem, QPushButton, 
                              QHBoxLayout, QFileDialog, QMessageBox, QProgressBar, QLabel)
 from PyQt6.QtCore import Qt, QMimeData, QUrl, QThread, pyqtSignal
-from PyQt6.QtGui import QDrag, QShortcut, QKeySequence
+from PyQt6.QtGui import QDrag, QShortcut, QKeySequence, QIcon
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from searcher import SampleSearcher
 from indexer import IndexerBackend
+import ctypes
+
+myappid = 'mycompany.myproduct.subproduct.version'
+try:
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+except ImportError:
+    pass
 
 class IndexingWorker(QThread):
     finished = pyqtSignal(int)
@@ -72,6 +79,9 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("AI Sample Searcher")
+        basedir = os.path.dirname(__file__)
+        icon_path = os.path.join(basedir, "icon.ico")
+        self.setWindowIcon(QIcon(icon_path))
         self.resize(500, 700)
         self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
 
@@ -208,8 +218,86 @@ class MainWindow(QMainWindow):
             list_item.setData(Qt.ItemDataRole.UserRole, full_path)
             self.result_list.addItem(list_item)
 
+# Dark Theme
+STYLESHEET = """
+QMainWindow {
+    background-color: #2b2b2b;
+}
+
+QLabel {
+    color: #cccccc;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+QLineEdit {
+    background-color: #3c3c3c;
+    border: 1px solid #555;
+    border-radius: 5px;
+    color: #ffffff;
+    padding: 8px;
+    font-size: 14px;
+}
+
+QLineEdit:focus {
+    border: 1px solid #006bb3;
+}
+
+QListWidget {
+    background-color: #1e1e1e;
+    border: none;
+    color: #dddddd;
+    font-size: 13px;
+    outline: none;
+}
+
+QListWidget::item {
+    padding: 10px;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+QListWidget::item:selected {
+    background-color: #007acc;
+    color: white;
+}
+
+QListWidget::item:hover {
+    background-color: #333333;
+}
+
+QPushButton {
+    background-color: #006bb3;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background-color: #005c99;
+}
+
+QPushButton:pressed {
+    background-color: #004c80;
+}
+
+QProgressBar {
+    border: 1px solid #444;
+    border-radius: 3px;
+    text-align: center;
+    background-color: #2e2e2e;
+    color: white;
+}
+
+QProgressBar::chunk {
+    background-color: #006bb3;
+    width: 20px;
+}
+"""
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setStyleSheet(STYLESHEET)
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
