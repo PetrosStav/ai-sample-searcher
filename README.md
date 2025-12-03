@@ -86,7 +86,6 @@ I have deployed a lightweight version of the search engine to the cloud, with a 
 
 > **[🔴 Try the Live API Demo Here](https://sample-api-284683380712.us-central1.run.app/docs)**
 
-### Cloud Architecture
 Unlike the desktop app which indexes your local files, this microservice runs in a containerized environment with a pre-indexed database of 14 snare samples.
 
 ### How to test the API:
