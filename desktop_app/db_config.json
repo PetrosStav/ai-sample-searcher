@@ -1,0 +1,6 @@
+{
+  "databases": [
+    "./sample_db"
+  ],
+  "last_used": "./sample_db"
+}

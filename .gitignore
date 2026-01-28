@@ -8,6 +8,7 @@ __pycache__/
 # Virtual Environments
 venv/
 env/
+env_wsl/
 .env
 .conda/
 
@@ -15,6 +16,9 @@ env/
 sample_db/
 *.parquet
 *.sqlite3
+
+# Model cache
+cloud_api/model_cache/
 
 # Logs and debug
 *.log
