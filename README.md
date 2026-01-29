@@ -2,11 +2,13 @@
 
 **Find your samples by describing them, not by filename.**
 
-![Demo](docs/demo.gif)
+![Demo](docs/screenshot.png)
 
 A local desktop application for music producers that allows you to search through your sample library using natural language (e.g., *"Heavy distorted industrial kick"* or *"Atmospheric sci-fi texture"*).
 
 Powered by **LAION-CLAP**, **ChromaDB**, and **PyQt6**.
+
+> **Note:** This project is forked from [https://github.com/gdiaz82/ai-sample-searcher](https://github.com/gdiaz82/ai-sample-searcher)
 
 ---
 
@@ -65,7 +67,7 @@ Prerequisite: Python 3.10 is required.
 
 1. **Clone the respository**
 ```bash
-   git clone https://github.com/gdiaz82/ai-sample-searcher
+   git clone https://github.com/PetrosStav/ai-sample-searcher
    cd ai-sample-searcher
 ```
 2. **Create a virtual environment (Recommended)**
@@ -78,7 +80,7 @@ Prerequisite: Python 3.10 is required.
     pip install -r requirements.txt
 ```
 *Note: If you have an NVIDIA GPU, ensure you have the correct PyTorch version with CUDA support installed.*
-*pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121*
+*pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128*
 
 ## Usage
 
